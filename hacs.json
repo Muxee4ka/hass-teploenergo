@@ -7,5 +7,5 @@
   "codeowners": ["@muxee4ka"],
   "iot_class": "cloud_polling",
   "render_readme": true,
-  "icon": "images/icons/logo.png"
+  "icon": "custom_components/teploenergo/brand/logo.png"
 }
