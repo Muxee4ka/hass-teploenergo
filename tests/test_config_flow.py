@@ -1,17 +1,17 @@
 """Tests for config flow."""
+
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.teploenergo.const import CONF_ACCOUNT_ID, CONF_LS, DOMAIN
+from custom_components.teploenergo.const import CONF_LS, DOMAIN
 from custom_components.teploenergo.exceptions import (
     TeploenergoAuthError,
     TeploenergoConnectionError,
 )
 
-from .conftest import MOCK_ACCOUNT, TEST_LOGIN, TEST_PASSWORD, TEST_LS
+from .conftest import MOCK_ACCOUNT, TEST_LOGIN, TEST_LS, TEST_PASSWORD
 
 USER_INPUT = {CONF_USERNAME: TEST_LOGIN, CONF_PASSWORD: TEST_PASSWORD}
 
@@ -36,14 +36,10 @@ def _patch_api(accounts=None, auth_exc=None, conn_exc=None):
 
 async def test_user_happy_path_creates_entry(hass):
     with _patch_api():
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
         assert result["type"] == FlowResultType.FORM
 
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], USER_INPUT
-        )
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
 
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert result["title"] == f"ЛС {TEST_LS}"
@@ -53,12 +49,8 @@ async def test_user_happy_path_creates_entry(hass):
 
 async def test_user_invalid_auth(hass):
     with _patch_api(auth_exc=TeploenergoAuthError("bad password")):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], USER_INPUT
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
 
     assert result["type"] == FlowResultType.FORM
     assert result["errors"]["base"] == "invalid_auth"
@@ -66,12 +58,8 @@ async def test_user_invalid_auth(hass):
 
 async def test_user_cannot_connect(hass):
     with _patch_api(conn_exc=TeploenergoConnectionError("timeout")):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], USER_INPUT
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
 
     assert result["type"] == FlowResultType.FORM
     assert result["errors"]["base"] == "cannot_connect"
@@ -79,12 +67,8 @@ async def test_user_cannot_connect(hass):
 
 async def test_user_no_accounts(hass):
     with _patch_api(accounts=[]):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], USER_INPUT
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
 
     assert result["type"] == FlowResultType.FORM
     assert result["errors"]["base"] == "no_accounts"
@@ -93,19 +77,13 @@ async def test_user_no_accounts(hass):
 async def test_already_configured_aborts(hass):
     with _patch_api():
         # First setup
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
         await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
 
     with _patch_api():
         # Second attempt with same account
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN, context={"source": "user"}
-        )
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"], USER_INPUT
-        )
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+        result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
 
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "already_configured"

@@ -3,6 +3,14 @@ from unittest.mock import AsyncMock, patch
 import pytest
 import pytest_socket
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.teploenergo.const import CONF_ACCOUNT_ID, CONF_LS, DOMAIN
+from custom_components.teploenergo.teploenergo_api import (
+    AccountInfo,
+    AccrualRecord,
+    MeterInfo,
+)
 
 
 # On Windows, ProactorEventLoop creates a TCP socket-pair via socket.socketpair()
@@ -15,14 +23,7 @@ def pytest_fixture_setup(fixturedef, request):
     pytest_socket.enable_socket()
     yield
     pytest_socket.disable_socket(allow_unix_socket=True)
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.teploenergo.const import CONF_ACCOUNT_ID, CONF_LS, DOMAIN
-from custom_components.teploenergo.teploenergo_api import (
-    AccountInfo,
-    AccrualRecord,
-    MeterInfo,
-)
 
 # ── Shared test data ──────────────────────────────────────────────────────────
 
