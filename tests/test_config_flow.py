@@ -20,7 +20,9 @@ def _patch_api(accounts=None, auth_exc=None, conn_exc=None):
     """Context manager that patches TeploenergoApi in the config_flow module."""
     mock_instance = AsyncMock()
     mock_instance.authenticate = AsyncMock(side_effect=auth_exc)
-    mock_instance.get_accounts = AsyncMock(return_value=accounts or [MOCK_ACCOUNT])
+    mock_instance.get_accounts = AsyncMock(
+        return_value=[MOCK_ACCOUNT] if accounts is None else accounts
+    )
     mock_instance.close = AsyncMock()
 
     if conn_exc:

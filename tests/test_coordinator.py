@@ -57,7 +57,7 @@ async def test_auth_error_raises_config_entry_auth_failed(hass):
     coordinator = TeploenergoCoordinator(hass, api, TEST_LS)
 
     with pytest.raises(ConfigEntryAuthFailed):
-        await coordinator.async_refresh()
+        await coordinator._async_update_data()
 
 
 async def test_connection_error_raises_update_failed(hass):
@@ -65,7 +65,7 @@ async def test_connection_error_raises_update_failed(hass):
     coordinator = TeploenergoCoordinator(hass, api, TEST_LS)
 
     with pytest.raises(UpdateFailed):
-        await coordinator.async_refresh()
+        await coordinator._async_update_data()
 
 
 async def test_authenticate_called_when_not_authenticated(hass):

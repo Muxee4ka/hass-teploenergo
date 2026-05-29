@@ -1,7 +1,20 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+import pytest_socket
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+
+
+# On Windows, ProactorEventLoop creates a TCP socket-pair via socket.socketpair()
+# during __init__, which is blocked by pytest-homeassistant-custom-component's
+# pytest_runtest_setup hook. We re-enable sockets around every fixture setup so
+# the event loop can be created; all actual HTTP calls are mocked so no real
+# network traffic escapes.
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_fixture_setup(fixturedef, request):
+    pytest_socket.enable_socket()
+    yield
+    pytest_socket.disable_socket(allow_unix_socket=True)
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.teploenergo.const import CONF_ACCOUNT_ID, CONF_LS, DOMAIN
