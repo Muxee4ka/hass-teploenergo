@@ -1,57 +1,141 @@
-# Теплоэнерго НН — Home Assistant интеграция
+<div align="center">
 
-[![HACS](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![GitHub Release](https://img.shields.io/github/v/release/Muxee4ka/hass-teploenergo)](https://github.com/Muxee4ka/hass-teploenergo/releases)
-[![CI](https://github.com/Muxee4ka/hass-teploenergo/actions/workflows/tests.yml/badge.svg)](https://github.com/Muxee4ka/hass-teploenergo/actions/workflows/tests.yml)
+<img src="custom_components/teploenergo/brand/logo.png" alt="Теплоэнерго НН" width="400">
 
-Интеграция для личного кабинета [Теплоэнерго Нижний Новгород](https://mobilelk.teploenergo-nn.ru): отображение задолженности, начислений и показаний приборов учёта, передача показаний и скачивание квитанций.
+# Теплоэнерго НН для Home Assistant
 
-## Возможности
+**Неофициальная интеграция личного кабинета Теплоэнерго Нижний Новгород для Home Assistant.**
+
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=flat-square)](https://github.com/hacs/integration)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+[![Tests](https://img.shields.io/github/actions/workflow/status/Muxee4ka/hass-teploenergo/tests.yml?branch=master&label=tests&style=flat-square)](https://github.com/Muxee4ka/hass-teploenergo/actions/workflows/tests.yml)
+[![Release](https://img.shields.io/github/v/release/Muxee4ka/hass-teploenergo?style=flat-square)](https://github.com/Muxee4ka/hass-teploenergo/releases/latest)
+
+</div>
+
+---
+
+Подключает [личный кабинет Теплоэнерго НН](https://mobilelk.teploenergo-nn.ru) к Home Assistant: отображение задолженности, начислений и показаний приборов учёта, передача показаний счётчиков и скачивание квитанций. Авторизация — по e-mail и паролю от мобильного приложения.
+
+## Что умеет
 
 - **Задолженность** — текущий баланс по лицевому счёту
-- **Начисления** — сумма к оплате, итоговое начисление и остаток за последний расчётный период
+- **Начисления** — сумма к оплате, итоговое начисление и входящий остаток за последний расчётный период
 - **Приборы учёта** — текущие показания счётчиков ГВС (м³) и ИТП Отопления (Гкал)
 - **Срок поверки** — дата следующей поверки каждого прибора
 - **Передача показаний** — ввод и отправка показаний прямо из Home Assistant
-- **Квитанция** — скачивание PDF-квитанции одной кнопкой (сохраняется в `/www/teploenergo/` с уведомлением и ссылкой)
+- **Квитанция** — скачивание PDF-квитанции одной кнопкой (сохраняется в `/www/teploenergo/` с уведомлением и ссылкой для скачивания)
 
 Данные обновляются каждый час. Поддерживается несколько лицевых счётов — каждый добавляется как отдельное устройство.
 
-## Установка через HACS
+## Установка
 
-1. В HACS выберите **Custom repositories** → вставьте `https://github.com/Muxee4ka/hass-teploenergo` → категория **Integration**.
-2. Установите **Теплоэнерго НН** и перезапустите Home Assistant.
-3. Перейдите в **Настройки → Устройства и службы → Добавить интеграцию** → найдите **Теплоэнерго НН**.
-4. Введите e-mail и пароль от личного кабинета.
+### Через HACS (рекомендуется)
 
-## Ручная установка
+1. HACS → **Интеграции** → **⋮** → **Пользовательские репозитории**
+2. URL: `https://github.com/Muxee4ka/hass-teploenergo`, категория **Integration**
+3. Найти **Теплоэнерго НН** в списке и установить
+4. Перезапустить Home Assistant
 
-Скопируйте папку `custom_components/teploenergo` в директорию `custom_components` вашей конфигурации Home Assistant и перезапустите.
+### Вручную
+
+Скопировать папку `custom_components/teploenergo` из [последнего релиза](https://github.com/Muxee4ka/hass-teploenergo/releases/latest) в `<config>/custom_components/` и перезапустить HA.
+
+## Настройка
+
+[Настройки](https://my.home-assistant.io/redirect/config) → **Устройства и службы** → [**Добавить интеграцию**](https://my.home-assistant.io/redirect/config_flow_start?domain=teploenergo) → найти **Теплоэнерго НН**.
+
+[![Добавить интеграцию](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start?domain=teploenergo)
+
+| Поле | Что вводить |
+|---|---|
+| **E-mail** | Адрес электронной почты от личного кабинета |
+| **Пароль** | Пароль от личного кабинета / мобильного приложения |
 
 ## Создаваемые объекты
 
 Для каждого лицевого счёта создаётся одно устройство со следующими объектами:
 
-| Объект | Тип | Описание |
-|--------|-----|----------|
-| Задолженность | Sensor | Текущий долг, ₽ |
-| Начислено | Sensor | Итог за последний период, ₽ |
-| К оплате | Sensor | Сумма с учётом перерасчётов, ₽ |
-| Входящий остаток | Sensor | Баланс на начало периода, ₽ |
-| Расчётный период | Sensor | Дата последнего периода (diagnostic) |
-| Показание счётчика × N | Sensor | Текущее значение каждого ПУ |
-| Срок поверки × N | Sensor | Дата поверки каждого ПУ (diagnostic) |
-| Ввод показания × N | Number | Передача показаний |
-| Скачать квитанцию | Button | Загрузка PDF |
+| Платформа | Объект | Описание |
+|---|---|---|
+| `sensor` | Задолженность | Текущий долг, ₽ |
+| `sensor` | Начислено | Итог за последний период, ₽ |
+| `sensor` | К оплате | Сумма к оплате, ₽ |
+| `sensor` | Входящий остаток | Баланс на начало периода, ₽ |
+| `sensor` | Расчётный период | Дата последнего периода (diagnostic) |
+| `sensor` | Показание × N | Текущее значение каждого ПУ (Гкал или м³) |
+| `sensor` | Срок поверки × N | Дата поверки каждого ПУ (diagnostic) |
+| `number` | Ввод показания × N | Передача показаний |
+| `button` | Скачать квитанцию | Загрузка PDF в `/www/teploenergo/` |
 
-## Разработка и тесты
+## Примеры автоматизаций
 
-```powershell
-# Установка зависимостей
-pip install pytest-homeassistant-custom-component pytest-asyncio
+<details>
+<summary><b>Уведомление о задолженности</b></summary>
 
-# Запуск тестов
-pytest tests/ -v
+```yaml
+alias: "Уведомление о долге Теплоэнерго"
+trigger:
+  - platform: numeric_state
+    entity_id: sensor.teploenergo_ls_XXXXXXXXXX_debt
+    above: 0
+action:
+  - service: notify.mobile_app
+    data:
+      title: "Теплоэнерго — задолженность"
+      message: >-
+        Задолженность: {{ states('sensor.teploenergo_ls_XXXXXXXXXX_debt') }} ₽
 ```
 
-Тесты запускаются на Windows и Linux (CI — GitHub Actions, ubuntu-latest, Python 3.12 и 3.13).
+</details>
+
+<details>
+<summary><b>Автоматическая передача показаний</b></summary>
+
+```yaml
+alias: "Передача показаний ГВС"
+trigger:
+  - platform: time
+    at: "09:00:00"
+  condition:
+    - condition: template
+      value_template: "{{ now().day == 25 }}"
+action:
+  - service: number.set_value
+    target:
+      entity_id: number.teploenergo_ls_XXXXXXXXXX_meter_XXXXXXXX_input
+    data:
+      value: "{{ states('sensor.teploenergo_ls_XXXXXXXXXX_meter_XXXXXXXX_reading') }}"
+```
+
+</details>
+
+<details>
+<summary><b>Скачать квитанцию и уведомить</b></summary>
+
+```yaml
+alias: "Квитанция Теплоэнерго"
+trigger:
+  - platform: time
+    at: "10:00:00"
+  condition:
+    - condition: template
+      value_template: "{{ now().day == 1 }}"
+action:
+  - service: button.press
+    target:
+      entity_id: button.teploenergo_ls_XXXXXXXXXX_download_bill
+```
+
+После нажатия Home Assistant создаст уведомление со ссылкой на PDF.
+
+</details>
+
+## Поддержка
+
+- **Баги и пожелания** — [Issues](https://github.com/Muxee4ka/hass-teploenergo/issues)
+- **Telegram автора** — [@Muxee4ka](https://github.com/Muxee4ka)
+
+## Лицензия
+
+[MIT](LICENSE) — используйте, форкайте, модифицируйте.
