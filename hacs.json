@@ -1,0 +1,11 @@
+{
+  "name": "Теплоэнерго НН",
+  "domain": "teploenergo",
+  "documentation": "https://github.com/Muxee4ka/hass-teploenergo",
+  "bugtracker": "https://github.com/Muxee4ka/hass-teploenergo/issues",
+  "homeassistant": "2024.1.0",
+  "codeowners": ["@muxee4ka"],
+  "iot_class": "cloud_polling",
+  "render_readme": true,
+  "icon": "images/icons/logo.png"
+}

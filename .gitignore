@@ -1,0 +1,31 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+.coverage
+htmlcov/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+
+# HA dev
+ha_config/
+
+# Capture files
+teploenergo1
+teploenergo2
+teploenergo3
+teploenegro4
+explore_api.py
+
+# Claude
+.claude/

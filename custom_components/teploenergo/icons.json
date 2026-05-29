@@ -1,0 +1,18 @@
+{
+  "integration": "mdi:fire",
+  "entity": {
+    "sensor": {
+      "debt": {"default": "mdi:currency-rub"},
+      "sum_itog": {"default": "mdi:cash-plus"},
+      "sum_pay": {"default": "mdi:cash-check"},
+      "balance": {"default": "mdi:scale-balance"},
+      "last_period": {"default": "mdi:calendar-clock"}
+    },
+    "button": {
+      "download_bill": {"default": "mdi:file-pdf-box"}
+    },
+    "number": {
+      "meter_input": {"default": "mdi:counter"}
+    }
+  }
+}

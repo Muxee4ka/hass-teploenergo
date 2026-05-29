@@ -1,0 +1,59 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Теплоэнерго НН",
+        "description": "Введите данные от личного кабинета",
+        "data": {
+          "username": "E-mail",
+          "password": "Пароль"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Повторная авторизация",
+        "description": "Введите новый пароль для {username}",
+        "data": {
+          "password": "Пароль"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Неверный логин или пароль",
+      "cannot_connect": "Не удалось подключиться к серверу",
+      "no_accounts": "Личные счета не найдены",
+      "unknown": "Неизвестная ошибка"
+    },
+    "abort": {
+      "already_configured": "Счёт уже настроен"
+    }
+  },
+  "entity": {
+    "button": {
+      "download_bill": {
+        "name": "Скачать счёт"
+      }
+    },
+    "number": {
+      "meter_input": {
+        "name": "Передача показаний"
+      }
+    },
+    "sensor": {
+      "debt": {
+        "name": "Задолженность"
+      },
+      "sum_itog": {
+        "name": "Начислено"
+      },
+      "sum_pay": {
+        "name": "Оплачено"
+      },
+      "balance": {
+        "name": "Входящее сальдо"
+      },
+      "last_period": {
+        "name": "Расчётный период"
+      }
+    }
+  }
+}
