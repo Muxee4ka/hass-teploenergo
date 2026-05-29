@@ -22,7 +22,40 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     coordinator: TeploenergoCoordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([TeploenergoDownloadBillButton(coordinator)])
+    async_add_entities(
+        [
+            TeploenergoSendReadingsButton(coordinator),
+            TeploenergoDownloadBillButton(coordinator),
+        ]
+    )
+
+
+class TeploenergoSendReadingsButton(TeploenergoEntity, ButtonEntity):
+    _attr_icon = "mdi:arrow-top-right"
+
+    def __init__(self, coordinator: TeploenergoCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{DOMAIN}_{coordinator.ls}_send_readings"
+        self._attr_name = "Передача показаний"
+
+    async def async_press(self) -> None:
+        coordinator = self.coordinator
+        sent = 0
+        for meter_id, entity in coordinator.meter_inputs.items():
+            if entity.native_value is None:
+                continue
+            try:
+                await coordinator.api.send_meter_reading(
+                    ls=coordinator.ls,
+                    meter_id=meter_id,
+                    value=entity.native_value,
+                )
+                sent += 1
+            except TeploenergoConnectionError as exc:
+                _LOGGER.error("Failed to send reading for meter %s: %s", meter_id, exc)
+
+        if sent:
+            await coordinator.async_request_refresh()
 
 
 class TeploenergoDownloadBillButton(TeploenergoEntity, ButtonEntity):

@@ -36,6 +36,7 @@ class TeploenergoCoordinator(DataUpdateCoordinator[TeploenergoData]):
         self.api = api
         self.ls = ls
         self.postal_index: str = ""
+        self.meter_inputs: dict = {}  # meter_id -> TeploenergoMeterInput entity
 
     async def _async_update_data(self) -> TeploenergoData:
         try:
