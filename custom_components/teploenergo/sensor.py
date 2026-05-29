@@ -17,7 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
 from .const import DOMAIN, METER_TYPE_GVS, UNIT_GCAL
-from .coordinator import TeploenergoCoordinator, TeploenergoData
+from .coordinator import TeploenergoCoordinator
 from .entity import TeploenergoEntity
 from .teploenergo_api import MeterInfo
 
@@ -27,6 +27,7 @@ CURRENCY_RUB = "RUB"
 
 
 # ── Account-level sensor descriptors ─────────────────────────────────────────
+
 
 @dataclass(frozen=True, kw_only=True)
 class TeploenergoSensorDescription(SensorEntityDescription):
@@ -73,13 +74,15 @@ ACCOUNT_SENSORS: tuple[TeploenergoSensorDescription, ...] = (
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda d: (
             datetime.fromtimestamp(d.latest_accrual.period_time, tz=UTC)
-            if d.latest_accrual else None
+            if d.latest_accrual
+            else None
         ),
     ),
 )
 
 
 # ── Setup ─────────────────────────────────────────────────────────────────────
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -100,6 +103,7 @@ async def async_setup_entry(
 
 # ── Account sensor ────────────────────────────────────────────────────────────
 
+
 class TeploenergoAccountSensor(TeploenergoEntity, SensorEntity):
     entity_description: TeploenergoSensorDescription
 
@@ -118,6 +122,7 @@ class TeploenergoAccountSensor(TeploenergoEntity, SensorEntity):
 
 
 # ── Meter sensors ─────────────────────────────────────────────────────────────
+
 
 class TeploenergoMeterReadingSensor(TeploenergoEntity, SensorEntity):
     _attr_state_class = SensorStateClass.TOTAL_INCREASING

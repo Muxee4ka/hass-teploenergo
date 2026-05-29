@@ -55,9 +55,7 @@ class TeploenergoCoordinator(DataUpdateCoordinator[TeploenergoData]):
                         self.postal_index = acc.postal_index
                         break
 
-            latest = (
-                max(accruals, key=lambda a: a.period_time) if accruals else None
-            )
+            latest = max(accruals, key=lambda a: a.period_time) if accruals else None
             return TeploenergoData(
                 debt=debt,
                 accruals=accruals,

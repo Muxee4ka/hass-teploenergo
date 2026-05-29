@@ -4,7 +4,6 @@ import logging
 
 from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -24,8 +23,7 @@ async def async_setup_entry(
 ) -> None:
     coordinator: TeploenergoCoordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
-        TeploenergoMeterInput(coordinator, meter)
-        for meter in coordinator.data.meters
+        TeploenergoMeterInput(coordinator, meter) for meter in coordinator.data.meters
     )
 
 
@@ -77,9 +75,7 @@ class TeploenergoMeterInput(TeploenergoEntity, NumberEntity):
                 value=value,
             )
         except TeploenergoConnectionError as exc:
-            _LOGGER.error(
-                "Failed to submit reading for meter %s: %s", self._meter_id, exc
-            )
+            _LOGGER.error("Failed to submit reading for meter %s: %s", self._meter_id, exc)
             return
 
         await self.coordinator.async_request_refresh()

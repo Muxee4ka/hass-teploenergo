@@ -1,4 +1,5 @@
 """Async API client for mobilelk.teploenergo-nn.ru."""
+
 from __future__ import annotations
 
 import asyncio
@@ -46,9 +47,9 @@ class MeterInfo:
     uid: str
     meter_id: int
     number: str
-    meter_type: str        # "otop" or "gvs"
-    type_label: str        # human-readable e.g. "ИТП Отопление"
-    a_type: str            # "Отопление" / "ГВС"
+    meter_type: str  # "otop" or "gvs"
+    type_label: str  # human-readable e.g. "ИТП Отопление"
+    a_type: str  # "Отопление" / "ГВС"
     value1: float
     value2: float | None
     measure_date: str
@@ -132,14 +133,16 @@ class TeploenergoApi:
         raw: list[dict] = await self._get("/bills/list/")
         result = []
         for item in raw:
-            result.append(AccountInfo(
-                ls=str(item.get("number") or item.get("UF_LS", "")),
-                account_id=str(item.get("ID", "")),
-                address=item.get("address", ""),
-                owner=unquote_plus(item.get("owner", "")),
-                debt=float(item.get("debt") or 0),
-                postal_index=str(item.get("postalIndex", "")),
-            ))
+            result.append(
+                AccountInfo(
+                    ls=str(item.get("number") or item.get("UF_LS", "")),
+                    account_id=str(item.get("ID", "")),
+                    address=item.get("address", ""),
+                    owner=unquote_plus(item.get("owner", "")),
+                    debt=float(item.get("debt") or 0),
+                    postal_index=str(item.get("postalIndex", "")),
+                )
+            )
         return result
 
     async def get_debt(self, ls: str) -> float:
@@ -196,9 +199,7 @@ class TeploenergoApi:
         try:
             async with self._ensure_session().get(url) as resp:
                 if resp.status != 200:
-                    raise TeploenergoConnectionError(
-                        f"Bill download failed: HTTP {resp.status}"
-                    )
+                    raise TeploenergoConnectionError(f"Bill download failed: HTTP {resp.status}")
                 return await resp.read()
         except aiohttp.ClientError as exc:
             raise TeploenergoConnectionError(str(exc)) from exc
@@ -208,17 +209,19 @@ class TeploenergoApi:
         meters: list[MeterInfo] = []
         for meter_type in (METER_TYPE_OTOP, METER_TYPE_GVS):
             for item in raw.get(meter_type, []):
-                meters.append(MeterInfo(
-                    uid=item.get("id", ""),
-                    meter_id=int(item.get("meterId", 0)),
-                    number=item.get("number", ""),
-                    meter_type=meter_type,
-                    type_label=item.get("type", ""),
-                    a_type=item.get("aType", ""),
-                    value1=float(item.get("value1") or 0),
-                    value2=float(item["value2"]) if item.get("value2") is not None else None,
-                    measure_date=item.get("measureDate", ""),
-                    verify_date=item.get("verifyDate", ""),
-                    verify_datetime=int(item.get("verifyDateTime") or 0),
-                ))
+                meters.append(
+                    MeterInfo(
+                        uid=item.get("id", ""),
+                        meter_id=int(item.get("meterId", 0)),
+                        number=item.get("number", ""),
+                        meter_type=meter_type,
+                        type_label=item.get("type", ""),
+                        a_type=item.get("aType", ""),
+                        value1=float(item.get("value1") or 0),
+                        value2=float(item["value2"]) if item.get("value2") is not None else None,
+                        measure_date=item.get("measureDate", ""),
+                        verify_date=item.get("verifyDate", ""),
+                        verify_datetime=int(item.get("verifyDateTime") or 0),
+                    )
+                )
         return meters

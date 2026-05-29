@@ -66,8 +66,7 @@ class TeploenergoDownloadBillButton(TeploenergoEntity, ButtonEntity):
             {
                 "title": "Счёт Теплоэнерго",
                 "message": (
-                    f"Счёт для ЛС {coordinator.ls} сохранён.\n\n"
-                    f"[Открыть PDF]({local_url})"
+                    f"Счёт для ЛС {coordinator.ls} сохранён.\n\n[Открыть PDF]({local_url})"
                 ),
                 "notification_id": f"teploenergo_bill_{coordinator.ls}",
             },

@@ -1,3 +1,4 @@
+import sys
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -12,17 +13,17 @@ from custom_components.teploenergo.teploenergo_api import (
     MeterInfo,
 )
 
-
-# On Windows, ProactorEventLoop creates a TCP socket-pair via socket.socketpair()
-# during __init__, which is blocked by pytest-homeassistant-custom-component's
-# pytest_runtest_setup hook. We re-enable sockets around every fixture setup so
-# the event loop can be created; all actual HTTP calls are mocked so no real
-# network traffic escapes.
-@pytest.hookimpl(hookwrapper=True, tryfirst=True)
-def pytest_fixture_setup(fixturedef, request):
-    pytest_socket.enable_socket()
-    yield
-    pytest_socket.disable_socket(allow_unix_socket=True)
+if sys.platform == "win32":
+    # On Windows, ProactorEventLoop creates a TCP socket-pair via socket.socketpair()
+    # during __init__, which is blocked by pytest-homeassistant-custom-component's
+    # pytest_runtest_setup hook. We re-enable sockets around every fixture setup so
+    # the event loop can be created; all actual HTTP calls are mocked so no real
+    # network traffic escapes. Not needed on Linux where the loop uses os.pipe().
+    @pytest.hookimpl(hookwrapper=True, tryfirst=True)
+    def pytest_fixture_setup(fixturedef, request):
+        pytest_socket.enable_socket()
+        yield
+        pytest_socket.disable_socket(allow_unix_socket=True)
 
 
 # ── Shared test data ──────────────────────────────────────────────────────────

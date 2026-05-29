@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers.selector import TextSelector, TextSelectorConfig, TextSelectorType
@@ -29,9 +28,7 @@ STEP_USER_SCHEMA = vol.Schema(
 class TeploenergoConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
-    async def async_step_user(
-        self, user_input: dict | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_user(self, user_input: dict | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -98,9 +95,7 @@ class TeploenergoConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_reauth(self, entry_data: dict) -> ConfigFlowResult:
         return await self.async_step_reauth_confirm()
 
-    async def async_step_reauth_confirm(
-        self, user_input: dict | None = None
-    ) -> ConfigFlowResult:
+    async def async_step_reauth_confirm(self, user_input: dict | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         reauth_entry = self._get_reauth_entry()
 

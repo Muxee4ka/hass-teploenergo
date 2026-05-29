@@ -1,4 +1,5 @@
 """Tests for TeploenergoApi — all aiohttp is mocked, no real sockets."""
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -43,8 +44,7 @@ SESSION_EXPIRED = {"Status": False, "ErrorCode": None, "Text": "SESSION_EXPIRED"
 
 async def test_authenticate_extracts_sessid_from_result():
     session = _make_session(post_resp=_make_resp(AUTH_OK))
-    with patch("aiohttp.TCPConnector"), \
-         patch("aiohttp.ClientSession", return_value=session):
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
         api = TeploenergoApi("user@example.com", "secret")
         await api.authenticate()
 
@@ -54,8 +54,7 @@ async def test_authenticate_extracts_sessid_from_result():
 
 async def test_authenticate_raises_on_wrong_password():
     session = _make_session(post_resp=_make_resp(AUTH_FAIL))
-    with patch("aiohttp.TCPConnector"), \
-         patch("aiohttp.ClientSession", return_value=session):
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
         api = TeploenergoApi("user@example.com", "wrong")
         with pytest.raises(TeploenergoAuthError):
             await api.authenticate()
@@ -65,8 +64,17 @@ async def test_authenticate_raises_on_wrong_password():
 
 
 async def test_get_retries_on_session_expired():
-    bills_raw = [{"number": "123", "UF_LS": "123", "ID": "1",
-                  "address": "", "owner": "", "debt": "0", "postalIndex": "000"}]
+    bills_raw = [
+        {
+            "number": "123",
+            "UF_LS": "123",
+            "ID": "1",
+            "address": "",
+            "owner": "",
+            "debt": "0",
+            "postalIndex": "000",
+        }
+    ]
     calls = []
 
     def fake_get(*args, **kwargs):
@@ -81,14 +89,13 @@ async def test_get_retries_on_session_expired():
     session.get = MagicMock(side_effect=fake_get)
     session.post = MagicMock(return_value=_make_resp(AUTH_OK))
 
-    with patch("aiohttp.TCPConnector"), \
-         patch("aiohttp.ClientSession", return_value=session):
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
         api = TeploenergoApi("u@e.com", "p")
         api._sessid = "old"
         result = await api._get("/bills/list/")
 
-    assert api._sessid == "test_sessid"   # re-authed
-    assert len(calls) == 2                # first expired, second ok
+    assert api._sessid == "test_sessid"  # re-authed
+    assert len(calls) == 2  # first expired, second ok
     assert result == bills_raw
 
 
@@ -97,15 +104,16 @@ async def test_get_retries_on_session_expired():
 
 async def test_get_accounts_parses_all_fields():
     raw_item = {
-        "ID": "115916", "UF_LS": "7024690127", "number": "7024690127",
-        "address": "Нижний Новгород", "owner": "%D0%A2%D0%B5%D1%81%D1%82",
-        "debt": "12.50", "postalIndex": "603057",
+        "ID": "115916",
+        "UF_LS": "7024690127",
+        "number": "7024690127",
+        "address": "Нижний Новгород",
+        "owner": "%D0%A2%D0%B5%D1%81%D1%82",
+        "debt": "12.50",
+        "postalIndex": "603057",
     }
-    session = _make_session(
-        get_resp=_make_resp({"Status": True, "Text": "", "Result": [raw_item]})
-    )
-    with patch("aiohttp.TCPConnector"), \
-         patch("aiohttp.ClientSession", return_value=session):
+    session = _make_session(get_resp=_make_resp({"Status": True, "Text": "", "Result": [raw_item]}))
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
         api = TeploenergoApi("u@e.com", "p")
         api._sessid = "sessid"
         accounts = await api.get_accounts()
@@ -124,20 +132,39 @@ async def test_get_accounts_parses_all_fields():
 
 async def test_get_meters_returns_otop_and_gvs():
     raw = {
-        "otop": [{"id": "u1", "meterId": 1001, "number": "OT-001",
-                  "type": "ИТП Отопление", "value1": 23.875, "value2": None,
-                  "measureDate": "27.05.2026", "verifyDate": "29.01.2032",
-                  "aType": "Отопление", "verifyDateTime": 1958936400, "measureDateTime": 0}],
-        "gvs": [{"id": "u2", "meterId": 2001, "number": "GV-001",
-                 "type": "ИПУ ГВС", "value1": 17.1, "value2": None,
-                 "measureDate": "27.05.2026", "verifyDate": "20.01.2032",
-                 "aType": "ГВС", "verifyDateTime": 1958158800, "measureDateTime": 0}],
+        "otop": [
+            {
+                "id": "u1",
+                "meterId": 1001,
+                "number": "OT-001",
+                "type": "ИТП Отопление",
+                "value1": 23.875,
+                "value2": None,
+                "measureDate": "27.05.2026",
+                "verifyDate": "29.01.2032",
+                "aType": "Отопление",
+                "verifyDateTime": 1958936400,
+                "measureDateTime": 0,
+            }
+        ],
+        "gvs": [
+            {
+                "id": "u2",
+                "meterId": 2001,
+                "number": "GV-001",
+                "type": "ИПУ ГВС",
+                "value1": 17.1,
+                "value2": None,
+                "measureDate": "27.05.2026",
+                "verifyDate": "20.01.2032",
+                "aType": "ГВС",
+                "verifyDateTime": 1958158800,
+                "measureDateTime": 0,
+            }
+        ],
     }
-    session = _make_session(
-        get_resp=_make_resp({"Status": True, "Text": "", "Result": raw})
-    )
-    with patch("aiohttp.TCPConnector"), \
-         patch("aiohttp.ClientSession", return_value=session):
+    session = _make_session(get_resp=_make_resp({"Status": True, "Text": "", "Result": raw}))
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
         api = TeploenergoApi("u@e.com", "p")
         api._sessid = "sessid"
         meters = await api.get_meters()
@@ -153,11 +180,8 @@ async def test_get_meters_returns_otop_and_gvs():
 
 
 async def test_send_meter_reading_posts_correct_body():
-    session = _make_session(
-        post_resp=_make_resp({"Status": True, "Text": "", "Result": None})
-    )
-    with patch("aiohttp.TCPConnector"), \
-         patch("aiohttp.ClientSession", return_value=session):
+    session = _make_session(post_resp=_make_resp({"Status": True, "Text": "", "Result": None}))
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
         api = TeploenergoApi("u@e.com", "p")
         api._sessid = "my_sessid"
         await api.send_meter_reading(ls="7024690127", meter_id=70180714, value=18.5)
@@ -174,8 +198,7 @@ async def test_send_meter_reading_raises_on_api_error():
     session = _make_session(
         post_resp=_make_resp({"Status": False, "Text": "VALIDATION_ERROR", "Result": None})
     )
-    with patch("aiohttp.TCPConnector"), \
-         patch("aiohttp.ClientSession", return_value=session):
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
         api = TeploenergoApi("u@e.com", "p")
         api._sessid = "sessid"
         with pytest.raises(TeploenergoConnectionError, match="VALIDATION_ERROR"):
@@ -193,8 +216,7 @@ async def test_download_bill_returns_bytes():
     resp.__aexit__ = AsyncMock(return_value=False)
 
     session = _make_session(get_resp=resp)
-    with patch("aiohttp.TCPConnector"), \
-         patch("aiohttp.ClientSession", return_value=session):
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
         api = TeploenergoApi("u@e.com", "p")
         data = await api.download_bill("603057", "7024690127")
 
