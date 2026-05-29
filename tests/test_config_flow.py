@@ -1,5 +1,6 @@
 """Tests for config flow."""
 
+import contextlib
 from unittest.mock import AsyncMock, patch
 
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -11,27 +12,35 @@ from custom_components.teploenergo.exceptions import (
     TeploenergoConnectionError,
 )
 
-from .conftest import MOCK_ACCOUNT, TEST_LOGIN, TEST_LS, TEST_PASSWORD
+from .conftest import MOCK_ACCOUNT, MOCK_ACCRUALS, MOCK_METERS, TEST_LOGIN, TEST_LS, TEST_PASSWORD
 
 USER_INPUT = {CONF_USERNAME: TEST_LOGIN, CONF_PASSWORD: TEST_PASSWORD}
 
 
+@contextlib.contextmanager
 def _patch_api(accounts=None, auth_exc=None, conn_exc=None):
-    """Context manager that patches TeploenergoApi in the config_flow module."""
+    """Patch TeploenergoApi in both config_flow and __init__ (async_setup_entry)."""
     mock_instance = AsyncMock()
+    mock_instance.is_authenticated = False
     mock_instance.authenticate = AsyncMock(side_effect=auth_exc)
     mock_instance.get_accounts = AsyncMock(
         return_value=[MOCK_ACCOUNT] if accounts is None else accounts
     )
+    mock_instance.get_debt = AsyncMock(return_value=0.0)
+    mock_instance.get_accruals = AsyncMock(return_value=MOCK_ACCRUALS)
+    mock_instance.get_meters = AsyncMock(return_value=MOCK_METERS)
     mock_instance.close = AsyncMock()
 
     if conn_exc:
         mock_instance.authenticate = AsyncMock(side_effect=conn_exc)
 
-    return patch(
-        "custom_components.teploenergo.config_flow.TeploenergoApi",
-        return_value=mock_instance,
-    )
+    with (
+        patch(
+            "custom_components.teploenergo.config_flow.TeploenergoApi", return_value=mock_instance
+        ),
+        patch("custom_components.teploenergo.TeploenergoApi", return_value=mock_instance),
+    ):
+        yield
 
 
 async def test_user_happy_path_creates_entry(hass):
@@ -100,6 +109,7 @@ async def test_reauth_updates_password(hass, mock_config_entry):
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"], {CONF_PASSWORD: "newpassword"}
         )
+        await hass.async_block_till_done()  # let the reload task run while API is still mocked
 
     assert result["type"] == FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"
