@@ -19,5 +19,5 @@ class TeploenergoEntity(CoordinatorEntity[TeploenergoCoordinator]):
             identifiers={(DOMAIN, ls)},
             name=f"Теплоэнерго ЛС {ls}",
             manufacturer=MANUFACTURER,
-            configuration_url="https://lk.teploenergo-nn.ru",
+            configuration_url="https://mobilelk.oko-nn.ru",
         )

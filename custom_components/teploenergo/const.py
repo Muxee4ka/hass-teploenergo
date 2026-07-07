@@ -4,7 +4,7 @@ from homeassistant.const import Platform
 
 DOMAIN = "teploenergo"
 MANUFACTURER = "Теплоэнерго НН"
-BASE_URL = "https://mobilelk.teploenergo-nn.ru"
+BASE_URL = "https://mobilelk.oko-nn.ru"
 CONF_LS = "ls"
 CONF_ACCOUNT_ID = "account_id"
 

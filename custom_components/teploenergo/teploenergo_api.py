@@ -1,4 +1,4 @@
-"""Async API client for mobilelk.teploenergo-nn.ru."""
+"""Async API client for mobilelk.oko-nn.ru."""
 
 from __future__ import annotations
 

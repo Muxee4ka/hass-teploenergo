@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Purpose
 
-Python client for the `mobilelk.teploenergo-nn.ru` REST API — the mobile backend for Teploenergo Nizhny Novgorod (district heating utility). The HTTP log files (`teploenergo1`–`teploenergo3`, `teploenegro4`) are captured traffic from the Android app and document the API surface.
+Python client for the `mobilelk.oko-nn.ru` REST API — the mobile backend for Teploenergo Nizhny Novgorod (district heating utility). Formerly hosted at `mobilelk.teploenergo-nn.ru`; the domain moved to `oko-nn.ru` (same Bitrix backend, same API surface) around July 2026. The HTTP log files (`teploenergo1`–`teploenergo3`, `teploenegro4`, `oko1`, `oko2`) are captured traffic from the Android app and document the API surface.
 
 ## Environment Setup
 
@@ -20,7 +20,7 @@ Python 3.12, venv at `.venv/`.
 
 ## API Reference (from captured traffic)
 
-Base URL: `https://mobilelk.teploenergo-nn.ru`  
+Base URL: `https://mobilelk.oko-nn.ru`  
 Backend: Bitrix Site Manager (PHP 8.3)  
 User-Agent must be: `okhttp/4.9.0`
 
