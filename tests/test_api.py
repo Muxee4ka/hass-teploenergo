@@ -22,6 +22,19 @@ def _make_resp(data: dict, status: int = 200):
     return resp
 
 
+def _make_html_resp(status: int = 500, body: str = "<pre>[Error] Class not found</pre>"):
+    """Mock for a PHP-fatal response: HTML body, json() raises."""
+    import json as json_lib
+
+    resp = MagicMock()
+    resp.status = status
+    resp.json = AsyncMock(side_effect=json_lib.JSONDecodeError("Expecting value", body, 0))
+    resp.text = AsyncMock(return_value=body)
+    resp.__aenter__ = AsyncMock(return_value=resp)
+    resp.__aexit__ = AsyncMock(return_value=False)
+    return resp
+
+
 def _make_session(post_resp=None, get_resp=None):
     """Mock aiohttp.ClientSession (no real socket created)."""
     session = MagicMock()
@@ -97,6 +110,75 @@ async def test_get_retries_on_session_expired():
     assert api._sessid == "test_sessid"  # re-authed
     assert len(calls) == 2  # first expired, second ok
     assert result == bills_raw
+
+
+# ── non-JSON (PHP fatal) responses ───────────────────────────────────────────
+
+
+async def test_get_raises_clean_error_on_html_response():
+    """HTTP 500 with an HTML body must surface as TeploenergoConnectionError."""
+    session = _make_session(get_resp=_make_html_resp())
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
+        api = TeploenergoApi("u@e.com", "p")
+        api._sessid = "sessid"
+        with pytest.raises(TeploenergoConnectionError, match="non-JSON"):
+            await api._get("/accruals/listSixMonth/", {"ls": "123"})
+
+
+async def test_get_accruals_falls_back_to_empty_ls_on_server_fatal():
+    """oko-nn.ru 500s on non-empty ls (Nov 2026); client retries with ls=''."""
+    accruals_raw = [
+        {
+            "period": "Октябрь 2026",
+            "periodTime": 1790802000,
+            "balance": 2892.29,
+            "sumTariff": 4132.85,
+            "sumRecalculation": 0,
+            "sumFine": 0,
+            "sumItog": 4132.85,
+            "sumPay": 2892.29,
+        }
+    ]
+    calls = []
+
+    def fake_get(*args, **kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            return _make_html_resp()
+        return _make_resp({"Status": True, "Text": "", "Result": accruals_raw})
+
+    session = MagicMock()
+    session.closed = False
+    session.close = AsyncMock()
+    session.get = MagicMock(side_effect=fake_get)
+
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
+        api = TeploenergoApi("u@e.com", "p")
+        api._sessid = "sessid"
+        result = await api.get_accruals("7024690127")
+
+    assert len(calls) == 2
+    assert calls[0]["params"]["ls"] == "7024690127"
+    assert calls[1]["params"]["ls"] == ""
+    assert len(result) == 1
+    assert result[0].period == "Октябрь 2026"
+    assert result[0].sum_tariff == 4132.85
+
+
+async def test_get_accruals_raises_when_fallback_also_fails():
+    def fake_get(*args, **kwargs):
+        return _make_html_resp()
+
+    session = MagicMock()
+    session.closed = False
+    session.close = AsyncMock()
+    session.get = MagicMock(side_effect=fake_get)
+
+    with patch("aiohttp.TCPConnector"), patch("aiohttp.ClientSession", return_value=session):
+        api = TeploenergoApi("u@e.com", "p")
+        api._sessid = "sessid"
+        with pytest.raises(TeploenergoConnectionError, match="non-JSON"):
+            await api.get_accruals("7024690127")
 
 
 # ── get_accounts ──────────────────────────────────────────────────────────────

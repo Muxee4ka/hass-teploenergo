@@ -41,7 +41,7 @@ Returns `Set-Cookie: PHPSESSID=...` and a JSON body containing a Bitrix `sessid`
 |--------|------|-------------|
 | GET | `/bills/list/` | List all bills for the account |
 | GET | `/bills/getDebt/?ls=<account_no>` | Current debt for a personal account (`ls`) |
-| GET | `/accruals/listSixMonth/?ls=<account_no>` | Six-month accrual history; `ls` can be empty for the default account |
+| GET | `/accruals/listSixMonth/?ls=<account_no>` | Six-month accrual history. **Since ~Nov 2026 a non-empty `ls` returns HTTP 500** (PHP fatal in `AccrualController.php:68`) — send `ls=` empty for the default account, as the Android app does; the client falls back automatically |
 | GET | `/apartmentPu/list/` | List apartments and metering units (PU) |
 
 All responses are gzip-compressed (`Accept-Encoding: gzip` required).

@@ -64,6 +64,7 @@ class TeploenergoApi:
         self._sessid: str = ""
         self._session: aiohttp.ClientSession | None = None
         self._auth_lock = asyncio.Lock()
+        self._accruals_ls_broken_warned = False
 
     # ── Session management ────────────────────────────────────────────────────
 
@@ -85,7 +86,7 @@ class TeploenergoApi:
                     f"{BASE_URL}/users/auth/",
                     data={"LOGIN": self._login, "PASSWORD": self._password},
                 ) as resp:
-                    data = await resp.json(content_type=None)
+                    data = await self._parse_json(resp)
             except aiohttp.ClientError as exc:
                 raise TeploenergoConnectionError(str(exc)) from exc
 
@@ -105,12 +106,27 @@ class TeploenergoApi:
 
     # ── Low-level request ─────────────────────────────────────────────────────
 
+    @staticmethod
+    async def _parse_json(resp: aiohttp.ClientResponse) -> dict:
+        """Decode a JSON body.
+
+        Bitrix serves JSON as text/html; on PHP fatals it answers an HTML error
+        page instead. Raise a clean error instead of a raw JSONDecodeError.
+        """
+        try:
+            return await resp.json(content_type=None)
+        except ValueError as exc:  # json.JSONDecodeError / UnicodeDecodeError
+            body = await resp.text(errors="replace")
+            raise TeploenergoConnectionError(
+                f"HTTP {resp.status}: non-JSON response: {body[:200]!r}"
+            ) from exc
+
     async def _get(self, path: str, params: dict | None = None, *, _retried: bool = False):
         session = self._ensure_session()
         full_params = {"sessid": self._sessid, **(params or {})}
         try:
             async with session.get(f"{BASE_URL}{path}", params=full_params) as resp:
-                data = await resp.json(content_type=None)
+                data = await self._parse_json(resp)
         except aiohttp.ClientError as exc:
             raise TeploenergoConnectionError(str(exc)) from exc
 
@@ -150,7 +166,25 @@ class TeploenergoApi:
         return float(raw) if raw else 0.0
 
     async def get_accruals(self, ls: str) -> list[AccrualRecord]:
-        raw: list[dict] = await self._get("/accruals/listSixMonth/", {"ls": ls})
+        try:
+            raw: list[dict] = await self._get("/accruals/listSixMonth/", {"ls": ls})
+        except TeploenergoConnectionError as exc:
+            # Since ~Nov 2026 oko-nn.ru fatals (HTTP 500, PHP "Class not found"
+            # in AccrualController) on a non-empty ls. The Android app always
+            # sends ls="" and gets the default account — do the same as a
+            # fallback, so single-account setups keep working.
+            if not ls:
+                raise
+            if not self._accruals_ls_broken_warned:
+                _LOGGER.warning(
+                    "Accruals request with ls=%s failed (%s); "
+                    'retrying with ls="" (default account) — the per-account '
+                    "accruals path is broken server-side on oko-nn.ru",
+                    ls,
+                    exc,
+                )
+                self._accruals_ls_broken_warned = True
+            raw = await self._get("/accruals/listSixMonth/", {"ls": ""})
         return [
             AccrualRecord(
                 period=item.get("period", ""),
@@ -179,7 +213,7 @@ class TeploenergoApi:
                 f"{BASE_URL}/apartmentPu/sendPuValue/",
                 data=body,
             ) as resp:
-                data = await resp.json(content_type=None)
+                data = await self._parse_json(resp)
         except aiohttp.ClientError as exc:
             raise TeploenergoConnectionError(str(exc)) from exc
 
